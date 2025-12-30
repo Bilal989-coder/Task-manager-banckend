@@ -1,24 +1,43 @@
+# =========================
+# Node / Express (Backend)
+# =========================
+
+# Dependencies
+node_modules/
+
+# Environment files (NEVER push)
+.env
+.env.*
+!.env.example
+
 # Logs
-logs
+logs/
 *.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
-lerna-debug.log*
 
-node_modules
-dist
-dist-ssr
-*.local
+# Runtime / temp
+tmp/
+temp/
+.cache/
+.nyc_output/
 
-# Editor directories and files
-.vscode/*
-!.vscode/extensions.json
-.idea
+# Build output
+dist/
+build/
+
+# Coverage
+coverage/
+
+# OS / Editor junk
 .DS_Store
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Optional: uploads (if you store user uploads locally)
+uploads/
