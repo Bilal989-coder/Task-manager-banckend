@@ -1,18 +1,22 @@
 const mongoose = require("mongoose");
 
+let cached = global.__mongoose_cached;
+if (!cached) cached = global.__mongoose_cached = { conn: null, promise: null };
+
 async function connectDB(uri) {
-  try {
+  if (!uri) throw new Error("MONGO_URI is missing");
+
+  if (cached.conn) return cached.conn;
+
+  if (!cached.promise) {
     mongoose.set("strictQuery", true);
-
-    await mongoose.connect(uri, {
-      autoIndex: true,
-    });
-
-    console.log("✅ MongoDB connected");
-  } catch (err) {
-    console.error("❌ MongoDB connection error:", err.message);
-    process.exit(1);
+    cached.promise = mongoose
+      .connect(uri, { autoIndex: true })
+      .then((m) => m);
   }
+
+  cached.conn = await cached.promise;
+  return cached.conn;
 }
 
 module.exports = connectDB;
