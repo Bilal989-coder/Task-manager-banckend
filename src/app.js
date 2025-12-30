@@ -19,7 +19,32 @@ const taskRoutes = require("./routes/taskRoutes");
 
 const app = express();
 
-app.use(cors());
+// ✅ CORS MUST be before routes
+const ALLOWED_ORIGINS = [
+  "http://localhost:5173",
+  "http://localhost:3000",
+  "https://task-manager-sand-three.vercel.app",
+];
+
+app.use(
+  cors({
+    origin: function (origin, cb) {
+      // allow server-to-server or Postman (no origin)
+      if (!origin) return cb(null, true);
+
+      if (ALLOWED_ORIGINS.includes(origin)) return cb(null, true);
+
+      return cb(new Error("Not allowed by CORS: " + origin));
+    },
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  })
+);
+
+// ✅ handle preflight
+app.options("*", cors());
+
 app.use(express.json());
 
 app.get("/health", (req, res) => res.json({ ok: true }));
