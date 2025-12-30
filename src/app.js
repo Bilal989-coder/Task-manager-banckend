@@ -7,6 +7,10 @@ const taskRoutes = require("./routes/taskRoutes");
 
 const app = express();
 
+// ✅ Parse JSON
+app.use(express.json());
+
+// ✅ CORS (Vercel + Local)
 const DEFAULT_ALLOWED = [
   "http://localhost:5173",
   "http://localhost:3000",
@@ -20,12 +24,23 @@ const ENV_ALLOWED = (process.env.CORS_ORIGINS || "")
 
 const ALLOWED_ORIGINS = ENV_ALLOWED.length ? ENV_ALLOWED : DEFAULT_ALLOWED;
 
+// allow Vercel preview urls too (task-manager-sand-three-xxx.vercel.app)
+function isAllowedOrigin(origin) {
+  if (!origin) return true; // Postman/server-to-server
+  if (ALLOWED_ORIGINS.includes(origin)) return true;
+
+  // ✅ allow preview deployments (optional)
+  if (
+    origin.startsWith("https://task-manager-sand-three") &&
+    origin.endsWith(".vercel.app")
+  ) {
+    return true;
+  }
+  return false;
+}
+
 const corsOptions = {
-  origin: (origin, cb) => {
-    if (!origin) return cb(null, true); // Postman / server-to-server
-    if (ALLOWED_ORIGINS.includes(origin)) return cb(null, true);
-    return cb(null, false);
-  },
+  origin: (origin, cb) => cb(null, isAllowedOrigin(origin)),
   credentials: true,
   methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"],
@@ -33,12 +48,11 @@ const corsOptions = {
 
 app.use(cors(corsOptions));
 
-// ✅ IMPORTANT: Express/router crash fix for "*" (use regex)
+// ✅ Preflight fix for Express v5
 app.options(/.*/, cors(corsOptions));
 
-app.use(express.json());
-
-// ✅ health
+// ✅ Health
+app.get("/health", (req, res) => res.json({ ok: true }));
 app.get("/api/health", (req, res) => {
   res.json({
     ok: true,
@@ -49,11 +63,17 @@ app.get("/api/health", (req, res) => {
   });
 });
 
-// ✅ routes
+// ✅ Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/tasks", taskRoutes);
 
 app.get("/", (req, res) => res.json({ ok: true, message: "API running" }));
+
+// ✅ Global error handler (Vercel logs me error show hoga)
+app.use((err, req, res, next) => {
+  console.error("❌ API Error:", err);
+  res.status(500).json({ message: err.message || "Internal Server Error" });
+});
 
 module.exports = app;
