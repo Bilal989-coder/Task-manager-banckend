@@ -1,6 +1,18 @@
 const express = require("express");
 const cors = require("cors");
 
+app.get("/api/health", (req, res) => {
+  res.json({
+    ok: true,
+    env: {
+      hasMongo: !!process.env.MONGO_URI,
+      hasJwt: !!process.env.JWT_SECRET,
+      nodeEnv: process.env.NODE_ENV,
+    },
+    time: new Date().toISOString(),
+  });
+});
+
 const authRoutes = require("./routes/authRoutes");
 const userRoutes = require("./routes/userRoutes");
 const taskRoutes = require("./routes/taskRoutes");
